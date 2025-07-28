@@ -37,6 +37,8 @@ export default function TabLayout() {
                 options={{
                     title: 'Create',
                     tabBarIcon: ({ color }) => <AntDesign name="plus" size={24} color={color} />,
+                    headerShown: false,
+                    tabBarStyle: { display: 'none' }
                 }}
             />
             <Tabs.Screen
