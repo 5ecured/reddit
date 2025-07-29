@@ -28,7 +28,7 @@ export default function CreateScreen() {
                 </Pressable>
             </View>
 
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
                 <ScrollView showsVerticalScrollIndicator={false} style={{ paddingVertical: 10 }}>
                     {/* COMMUNITY SELECTOR */}
                     {/* asChild makes the Link similar to a parasite that attaches to the Pressable below */}

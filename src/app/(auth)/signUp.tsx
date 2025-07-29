@@ -67,7 +67,7 @@ export default function SignUpScreen() {
 
     if (pendingVerification) {
         return (
-            <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
                 <Text style={styles.title}>Verify Your Email</Text>
                 <TextInput
                     style={styles.input}
@@ -82,7 +82,7 @@ export default function SignUpScreen() {
     }
 
     return (
-        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <Text style={styles.title}>Sign Up</Text>
             <TextInput
                 style={styles.input}
