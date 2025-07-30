@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import posts from '../../../../assets/data/posts.json'
@@ -13,6 +13,7 @@ const DetailedPost = () => {
 
     const [comment, setComment] = useState<string>('')
     const [isInputFocused, setIsInputFocused] = useState<boolean>(false)
+    const inputRef = useRef<TextInput | null>(null)
 
     const insets = useSafeAreaInsets()
 
@@ -23,6 +24,22 @@ const DetailedPost = () => {
     const insetsStyle = {
         paddingBottom: insets.bottom
     }
+
+    // const handleReplyButtonPressed = (commentId: string) => {
+    //     inputRef.current?.focus()
+    // }
+
+    const handleReplyButtonPressed = useCallback((commentId: string) => {
+        inputRef.current?.focus()
+    }, [])
+
+    /* 
+    memo prevents CommentListItem from rerendering, but ONLY if the props dont change. The handleReplyButtonPressed does 
+    change, therefore we use useCallback in order to persist it - so its location in memory does not change. Now, memo works 
+
+    But careful with using memo too much because it uses the memory of your device
+    */
+
 
     if (!detailedPost) {
         return <Text>Post not found</Text>
@@ -37,7 +54,7 @@ const DetailedPost = () => {
         >
             <FlatList
                 data={postComments}
-                renderItem={({ item }) => <CommentListItem comment={item} />}
+                renderItem={({ item }) => <CommentListItem comment={item} depth={0} handleReplyButtonPressed={handleReplyButtonPressed} />}
                 ListHeaderComponent={<PostListItem post={detailedPost} isDetailedPost />}
             />
             <View style={[styles.a, insetsStyle]}>
@@ -49,6 +66,7 @@ const DetailedPost = () => {
                     multiline
                     onFocus={() => setIsInputFocused(true)}
                     onBlur={() => setIsInputFocused(false)}
+                    ref={inputRef}
                 />
                 {isInputFocused && (
                     <Pressable style={{ backgroundColor: '#0d469b', borderRadius: 15, marginLeft: 'auto', marginTop: 15 }}>

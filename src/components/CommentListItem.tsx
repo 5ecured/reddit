@@ -1,13 +1,17 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Pressable, FlatList } from "react-native";
 import { Entypo, Octicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Comment } from "../types";
+import { useState, memo } from "react";
 
 type CommentListItemProps = {
   comment: Comment;
+  depth: number
+  handleReplyButtonPressed: (commentId: string) => void
 }
 
-const CommentListItem = ({ comment }: CommentListItemProps) => {
+const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentListItemProps) => {
+  const [isShowReplies, setIsShowReplies] = useState<boolean>(false)
 
   return (
     <View
@@ -18,6 +22,7 @@ const CommentListItem = ({ comment }: CommentListItemProps) => {
         paddingVertical: 5,
         gap: 10,
         borderLeftColor: "#E5E7EB",
+        borderLeftWidth: depth > 0 ? 1 : 0
       }}
     >
       {/* User Info */}
@@ -39,19 +44,61 @@ const CommentListItem = ({ comment }: CommentListItemProps) => {
       <Text>{comment.comment}</Text>
 
       {/* Comment Actions */}
-      <View style={{ flexDirection: "row", justifyContent: "flex-end", alignItems: "center", gap: 14 }}>
+      <View style={{
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        alignItems: "center",
+        gap: 14
+      }}>
         <Entypo name="dots-three-horizontal" size={15} color="#737373" />
-        <Octicons name="reply" size={16} color="#737373" onPress={() => console.log('Reply button pressed')}/>
-        <MaterialCommunityIcons name="trophy-outline" size={16} color="#737373" />
+        <Octicons
+          name="reply"
+          size={16}
+          color="#737373"
+          onPress={() => handleReplyButtonPressed(comment.id)}
+        />
+        <MaterialCommunityIcons
+          name="trophy-outline"
+          size={16}
+          color="#737373"
+        />
         <View style={{ flexDirection: "row", gap: 5, alignItems: "center" }}>
           <MaterialCommunityIcons name="arrow-up-bold-outline" size={18} color="#737373" />
           <Text style={{ fontWeight: "500", color: "#737373" }}>{comment.upvotes}</Text>
           <MaterialCommunityIcons name="arrow-down-bold-outline" size={18} color="#737373" />
         </View>
       </View>
+
+      {/* SHOW REPLIES BUTTON */}
+      {/* the double negation below is because if comment.replies.length is false, it becomes 0. and react native will complain
+      that it must be wrapped in <Text>. Therefore we use ! to turn it into a boolean, and a second ! to turn it back to the
+      original value, except now it is a boolean, so the warning from react native will disappear */}
+      {(!!comment.replies.length && !isShowReplies && depth < 5) && (
+        <Pressable
+          style={{ backgroundColor: '#EDEDED', borderRadius: 2, paddingVertical: 3, alignItems: 'center' }}
+          onPress={() => setIsShowReplies(true)}
+        >
+          <Text style={{ fontSize: 12, letterSpacing: 0.5, fontWeight: '500', color: '#545454' }}>
+            Show replies
+          </Text>
+        </Pressable>
+      )}
+
+      {/* LIST OF REPLIES  */}
+
+      {/* {isShowReplies && (
+        <FlatList
+          data={comment.replies}
+          renderItem={({ item }) => <CommentListItem comment={item} depth={depth + 1} handleReplyButtonPressed={handleReplyButtonPressed} />}
+        />
+      )} */}
+
+      {isShowReplies && comment.replies.map((item) => (
+        <CommentListItem key={item.id} comment={item} depth={depth + 1} handleReplyButtonPressed={handleReplyButtonPressed} />
+      ))}
     </View>
 
   )
 };
 
-export default CommentListItem;
+export default memo(CommentListItem);
