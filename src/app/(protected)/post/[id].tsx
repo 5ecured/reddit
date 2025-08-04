@@ -1,23 +1,27 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import posts from '../../../../assets/data/posts.json'
 import PostListItem from '../../../components/PostListItem'
 import comments from '../../../../assets/data/comments.json'
 import CommentListItem from '../../../components/CommentListItem'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { fetchPostsById } from '../../../services/postService'
+import { useQuery } from '@tanstack/react-query'
 
 const DetailedPost = () => {
     //this "id" refers to this file name
-    const { id } = useLocalSearchParams()
-
+    const { id } = useLocalSearchParams<{ id: string }>()
     const [comment, setComment] = useState<string>('')
     const [isInputFocused, setIsInputFocused] = useState<boolean>(false)
     const inputRef = useRef<TextInput | null>(null)
-
     const insets = useSafeAreaInsets()
 
-    const detailedPost = posts.find(post => post.id === id)
+    const { data: post, isLoading, error } = useQuery({
+        queryKey: ['posts', id],
+        queryFn: () => fetchPostsById(id)
+    })
+
+    // const detailedPost = posts.find(post => post.id === id)
 
     const postComments = comments.filter(comment => comment.post_id === 'post-1')
 
@@ -40,8 +44,11 @@ const DetailedPost = () => {
     But careful with using memo too much because it uses the memory of your device
     */
 
+    if (isLoading) {
+        return <ActivityIndicator />
+    }
 
-    if (!detailedPost) {
+    if (error || !post) {
         return <Text>Post not found</Text>
     }
 
@@ -55,7 +62,7 @@ const DetailedPost = () => {
             <FlatList
                 data={postComments}
                 renderItem={({ item }) => <CommentListItem comment={item} depth={0} handleReplyButtonPressed={handleReplyButtonPressed} />}
-                ListHeaderComponent={<PostListItem post={detailedPost} isDetailedPost />}
+                ListHeaderComponent={<PostListItem post={post} isDetailedPost />}
             />
             <View style={[styles.a, insetsStyle]}>
                 <TextInput

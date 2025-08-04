@@ -1,8 +1,14 @@
 import { Image, Pressable, Text, View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Post } from '../types';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Link } from 'expo-router';
+import { Tables } from '../types/database.types';
+
+
+type Post = Tables<'posts'> & {
+    user: Tables<'users'>
+    group: Tables<'groups'>
+}
 
 type PostListItemProps = {
     post: Post;
@@ -12,10 +18,10 @@ type PostListItemProps = {
 export default function PostListItem({ post, isDetailedPost }: PostListItemProps) {
     const shouldShowImage = isDetailedPost || post.image
     const shouldShowDescription = isDetailedPost || !post.image
-
+    
     return (
-        <Link href={`/post/${post.id}`}>
-            <View style={{ paddingHorizontal: 15, paddingVertical: 10, gap: 7, borderBottomColor: 'lightgrey', borderBottomWidth: 0.5, backgroundColor: 'white' }}>
+        <Link href={`/post/${post.id}`} asChild>
+            <Pressable style={{ paddingHorizontal: 15, paddingVertical: 10, gap: 7, borderBottomColor: 'lightgrey', borderBottomWidth: 0.5, backgroundColor: 'white' }}>
                 {/* HEADER */}
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Image source={{ uri: post.group.image }} style={{ width: 20, height: 20, borderRadius: 10, marginRight: 5 }} />
@@ -62,7 +68,7 @@ export default function PostListItem({ post, isDetailedPost }: PostListItemProps
                         <MaterialCommunityIcons name="share-outline" size={19} color="black" style={styles.iconBox} />
                     </View>
                 </View>
-            </View>
+            </Pressable>
         </Link>
     )
 }

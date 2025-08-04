@@ -5,21 +5,8 @@ import { supabase } from '../../../lib/supabase';
 import { useState, useEffect } from 'react';
 import { Tables } from '../../../types/database.types';
 import { useQuery } from '@tanstack/react-query';
+import { fetchPosts } from '../../../services/postService';
 
-type Post = Tables<'posts'> & {
-    user: Tables<'users'>
-    group: Tables<'groups'>
-}
-
-const fetchPosts = async () => {
-    const { data, error } = await supabase.from('posts').select('*, group:groups(*), user:users!posts_user_id_fkey(*)')
-
-    if (error) {
-        throw error
-    } else {
-        return data
-    }
-}
 
 export default function HomeScreen() {
     const { data: posts, isLoading, error } = useQuery({
