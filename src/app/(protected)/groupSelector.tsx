@@ -5,9 +5,12 @@ import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { selectedGroupAtom } from '../../atoms'
 import { useSetAtom } from 'jotai'
-import { Group } from '../../types'
+// import { Group } from '../../types'
 import { useQuery } from '@tanstack/react-query'
 import { fetchGroups } from '../../services/groupService'
+import { Tables } from '../../types/database.types'
+
+type Group = Tables<'groups'>
 
 const groupSelector = () => {
     const [searchValue, setSearchValue] = useState<string>('')
