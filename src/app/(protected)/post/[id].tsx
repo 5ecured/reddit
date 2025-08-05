@@ -1,13 +1,15 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native'
-import { useLocalSearchParams } from 'expo-router'
+import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native'
+import { router, Stack, useLocalSearchParams } from 'expo-router'
 import PostListItem from '../../../components/PostListItem'
 import comments from '../../../../assets/data/comments.json'
 import CommentListItem from '../../../components/CommentListItem'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { fetchPostsById } from '../../../services/postService'
-import { useQuery } from '@tanstack/react-query'
+import { deletePostById, fetchPostsById } from '../../../services/postService'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSupabase } from '../../../lib/supabase'
+import { AntDesign, MaterialIcons, Entypo } from '@expo/vector-icons'
+
 
 const DetailedPost = () => {
     //this "id" refers to this file name
@@ -18,13 +20,23 @@ const DetailedPost = () => {
     const insets = useSafeAreaInsets()
 
     const supabase = useSupabase()
+    const queryClient = useQueryClient()
 
     const { data: post, isLoading, error } = useQuery({
         queryKey: ['posts', id],
         queryFn: () => fetchPostsById(id, supabase)
     })
 
-    // const detailedPost = posts.find(post => post.id === id)
+    const { mutate: remove } = useMutation({
+        mutationFn: () => deletePostById(id, supabase),
+        onSuccess: () => {
+            router.back()
+            queryClient.invalidateQueries({ queryKey: ['posts'] })
+        },
+        onError: (error) => {
+            Alert.alert('this error is from [id].tsx', error.message)
+        }
+    })
 
     const postComments = comments.filter(comment => comment.post_id === 'post-1')
 
@@ -62,6 +74,18 @@ const DetailedPost = () => {
             //Without below, the TextInput will be hidden behind the keyboard. The + 10 is just for some padding
             keyboardVerticalOffset={insets.top + 10}
         >
+            <Stack.Screen
+                options={{
+                    headerRight: () =>
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <Entypo onPress={() => remove()} name="trash" size={24} color="white" />
+                            <AntDesign name="search1" size={24} color="white" />
+                            <MaterialIcons name="sort" size={27} color="white" />
+                            <Entypo name="dots-three-horizontal" size={24} color="white" />
+                        </View>,
+                    animation: "slide_from_bottom"
+                }}
+            />
             <FlatList
                 data={postComments}
                 renderItem={({ item }) => <CommentListItem comment={item} depth={0} handleReplyButtonPressed={handleReplyButtonPressed} />}

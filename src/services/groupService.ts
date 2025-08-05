@@ -1,5 +1,4 @@
 import { SupabaseClient } from "@supabase/supabase-js"
-import { supabase } from "../lib/supabase"
 import { Database } from "../types/database.types"
 
 export const fetchGroups = async (search: string, supabase: SupabaseClient<Database>) => {
