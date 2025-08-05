@@ -7,6 +7,7 @@ import CommentListItem from '../../../components/CommentListItem'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fetchPostsById } from '../../../services/postService'
 import { useQuery } from '@tanstack/react-query'
+import { useSupabase } from '../../../lib/supabase'
 
 const DetailedPost = () => {
     //this "id" refers to this file name
@@ -16,9 +17,11 @@ const DetailedPost = () => {
     const inputRef = useRef<TextInput | null>(null)
     const insets = useSafeAreaInsets()
 
+    const supabase = useSupabase()
+
     const { data: post, isLoading, error } = useQuery({
         queryKey: ['posts', id],
-        queryFn: () => fetchPostsById(id)
+        queryFn: () => fetchPostsById(id, supabase)
     })
 
     // const detailedPost = posts.find(post => post.id === id)

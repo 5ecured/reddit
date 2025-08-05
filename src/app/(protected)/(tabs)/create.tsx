@@ -6,12 +6,13 @@ import { Link, router } from 'expo-router';
 import { selectedGroupAtom } from '../../../atoms';
 import { useAtom } from 'jotai';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabase';
-import { TablesInsert } from '../../../types/database.types';
+import { useSupabase } from '../../../lib/supabase';
+import { Database, TablesInsert } from '../../../types/database.types';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 type InsertPost = TablesInsert<'posts'>
 
-const insertPost = async (post: InsertPost) => {
+const insertPost = async (post: InsertPost, supabase: SupabaseClient<Database>) => {
     //use supabase to insert a new post
     const { data, error } = await supabase
         .from('posts')
@@ -32,6 +33,7 @@ export default function CreateScreen() {
     const [group, setGroup] = useAtom(selectedGroupAtom)
 
     const queryClient = useQueryClient()
+    const supabase = useSupabase()
 
     const { mutate, isPending } = useMutation({
         mutationFn: async () => {
@@ -47,8 +49,7 @@ export default function CreateScreen() {
                 title,
                 description: bodyText,
                 group_id: group.id,
-                user_id: "09af9255-b50f-4a78-9e34-9dcfc757a364"
-            })
+            }, supabase)
         },
         onSuccess: (data) => {
             //invalidate queries that might have been affected by inserting a post

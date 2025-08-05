@@ -1,17 +1,16 @@
 import { View, FlatList, ActivityIndicator, Text } from 'react-native';
 import PostListItem from '../../../components/PostListItem';
-// import posts from '../../../../assets/data/posts.json'
-import { supabase } from '../../../lib/supabase';
-import { useState, useEffect } from 'react';
-import { Tables } from '../../../types/database.types';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPosts } from '../../../services/postService';
+import { useSupabase } from '../../../lib/supabase';
 
 
 export default function HomeScreen() {
+    const supabase = useSupabase()
+
     const { data: posts, isLoading, error, refetch, isRefetching } = useQuery({
         queryKey: ['posts'],
-        queryFn: () => fetchPosts(),
+        queryFn: () => fetchPosts(supabase),
         staleTime: 10_000
     })
 

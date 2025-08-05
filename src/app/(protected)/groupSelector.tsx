@@ -9,6 +9,7 @@ import { useSetAtom } from 'jotai'
 import { useQuery } from '@tanstack/react-query'
 import { fetchGroups } from '../../services/groupService'
 import { Tables } from '../../types/database.types'
+import { useSupabase } from '../../lib/supabase'
 
 type Group = Tables<'groups'>
 
@@ -16,9 +17,11 @@ const groupSelector = () => {
     const [searchValue, setSearchValue] = useState<string>('')
     const setGroup = useSetAtom(selectedGroupAtom)
 
+    const supabase = useSupabase()
+
     const { data, isLoading, error } = useQuery({
         queryKey: ['groups', { searchValue }],
-        queryFn: () => fetchGroups(searchValue),
+        queryFn: () => fetchGroups(searchValue, supabase),
         staleTime: 10000,
         placeholderData: (previousData) => previousData
     })
