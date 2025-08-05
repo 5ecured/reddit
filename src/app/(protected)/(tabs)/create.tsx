@@ -5,7 +5,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { Link, router } from 'expo-router';
 import { selectedGroupAtom } from '../../../atoms';
 import { useAtom } from 'jotai';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { TablesInsert } from '../../../types/database.types';
 
@@ -31,18 +31,34 @@ export default function CreateScreen() {
     const [bodyText, setBodyText] = useState<string>('')
     const [group, setGroup] = useAtom(selectedGroupAtom)
 
+    const queryClient = useQueryClient()
+
     const { mutate, isPending } = useMutation({
-        mutationFn: async () => insertPost({
-            title,
-            description: bodyText,
-            group_id: "3009b53e-8de7-45c2-b10b-ec0c27c0c477",
-            user_id: "09af9255-b50f-4a78-9e34-9dcfc757a364"
-        }),
+        mutationFn: async () => {
+            if (!group) {
+                throw new Error('Please select a group')
+            }
+
+            if (!title) {
+                throw new Error('Title is required')
+            }
+
+            return insertPost({
+                title,
+                description: bodyText,
+                group_id: group.id,
+                user_id: "09af9255-b50f-4a78-9e34-9dcfc757a364"
+            })
+        },
         onSuccess: (data) => {
+            //invalidate queries that might have been affected by inserting a post
+            //as a result, after creating a post, you will see it in the home screen straight away
+            queryClient.invalidateQueries({ queryKey: ['posts'] })
+
             goBack()
         },
         onError: (error) => {
-            Alert.alert('Failed to insert post')
+            Alert.alert('Failed to insert post', error.message)
         }
     })
 

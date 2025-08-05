@@ -9,9 +9,10 @@ import { fetchPosts } from '../../../services/postService';
 
 
 export default function HomeScreen() {
-    const { data: posts, isLoading, error } = useQuery({
+    const { data: posts, isLoading, error, refetch, isRefetching } = useQuery({
         queryKey: ['posts'],
-        queryFn: () => fetchPosts()
+        queryFn: () => fetchPosts(),
+        staleTime: 10_000
     })
 
 
@@ -25,7 +26,13 @@ export default function HomeScreen() {
 
     return (
         <View>
-            <FlatList data={posts} renderItem={({ item }) => <PostListItem post={item} />} />
+            <FlatList
+                data={posts}
+                renderItem={({ item }) => <PostListItem post={item} />}
+                //the 2 below are for pull down to refresh
+                onRefresh={refetch}
+                refreshing={isRefetching}
+            />
         </View>
     )
 }
