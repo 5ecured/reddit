@@ -4,9 +4,8 @@ import { Database } from "../types/database.types"
 export const fetchPosts = async (supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase
         .from('posts')
-        .select('*, group:groups(*)')
+        .select('*, group:groups(*), upvotes(value.sum())')
         .order('created_at', { ascending: false })
-
     if (error) {
         throw error
     } else {
@@ -17,7 +16,7 @@ export const fetchPosts = async (supabase: SupabaseClient<Database>) => {
 export const fetchPostsById = async (id: string, supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase
         .from('posts')
-        .select('*, group:groups(*)')
+        .select('*, group:groups(*), upvotes(value.sum())')
         .eq('id', id)
         .single()
 
@@ -27,6 +26,17 @@ export const fetchPostsById = async (id: string, supabase: SupabaseClient<Databa
         return data
     }
 }
+
+// export const fetchPostUpvotes = async (id: string, supabase: SupabaseClient<Database>) => {
+//     const { data, error } = await supabase.from('upvotes').select('value.sum()').eq('post_id', id)
+
+//     console.log('=====', JSON.stringify(data, null, 2))
+//     if (error) {
+//         throw error
+//     } else {
+//         return data
+//     }
+// }
 
 export const deletePostById = async (id: string, supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase.from('posts').delete().eq('id', id)
