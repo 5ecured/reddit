@@ -4,7 +4,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { Comment } from "../types";
 import { useState, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchComments } from "../services/postService";
+import { fetchCommentReplies, fetchComments } from "../services/postService";
 import { useSupabase } from "../lib/supabase";
 
 type CommentListItemProps = {
@@ -20,7 +20,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
 
   const { data: comments } = useQuery({
     queryKey: ['comments', { parentId: comment.id }],
-    queryFn: () => fetchComments(id, supabase)
+    queryFn: () => fetchCommentReplies(comment.id, supabase)
   })
 
   return (
@@ -83,7 +83,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
       {/* the double negation below is because if comment.replies.length is false, it becomes 0. and react native will complain
       that it must be wrapped in <Text>. Therefore we use ! to turn it into a boolean, and a second ! to turn it back to the
       original value, except now it is a boolean, so the warning from react native will disappear */}
-      {(!!comment.replies?.length && !isShowReplies && depth < 5) && (
+      {(!!comments?.length && !isShowReplies && depth < 5) && (
         <Pressable
           style={{ backgroundColor: '#EDEDED', borderRadius: 2, paddingVertical: 3, alignItems: 'center' }}
           onPress={() => setIsShowReplies(true)}
@@ -103,7 +103,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
         />
       )} */}
 
-      {isShowReplies && comment.replies.map((item) => (
+      {(isShowReplies && comments?.length) && comments.map((item) => (
         <CommentListItem key={item.id} comment={item} depth={depth + 1} handleReplyButtonPressed={handleReplyButtonPressed} />
       ))}
     </View>
