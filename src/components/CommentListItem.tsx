@@ -1,11 +1,12 @@
 import { View, Text, Image, Pressable, FlatList } from "react-native";
 import { Entypo, Octicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatDistanceToNowStrict } from 'date-fns';
-import { Comment } from "../types";
 import { useState, memo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCommentReplies, fetchComments } from "../services/postService";
+import { fetchCommentReplies } from "../services/commentsService";
 import { useSupabase } from "../lib/supabase";
+import { Tables } from "../types/database.types";
+
+type Comment = Tables<'comments'>
 
 type CommentListItemProps = {
   comment: Comment;
@@ -18,7 +19,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
 
   const supabase = useSupabase()
 
-  const { data: comments } = useQuery({
+  const { data: replies } = useQuery({
     queryKey: ['comments', { parentId: comment.id }],
     queryFn: () => fetchCommentReplies(comment.id, supabase)
   })
@@ -83,7 +84,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
       {/* the double negation below is because if comment.replies.length is false, it becomes 0. and react native will complain
       that it must be wrapped in <Text>. Therefore we use ! to turn it into a boolean, and a second ! to turn it back to the
       original value, except now it is a boolean, so the warning from react native will disappear */}
-      {(!!comments?.length && !isShowReplies && depth < 5) && (
+      {(!!replies?.length && !isShowReplies && depth < 5) && (
         <Pressable
           style={{ backgroundColor: '#EDEDED', borderRadius: 2, paddingVertical: 3, alignItems: 'center' }}
           onPress={() => setIsShowReplies(true)}
@@ -103,7 +104,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
         />
       )} */}
 
-      {(isShowReplies && comments?.length) && comments.map((item) => (
+      {(isShowReplies && replies?.length) && replies.map((item) => (
         <CommentListItem key={item.id} comment={item} depth={depth + 1} handleReplyButtonPressed={handleReplyButtonPressed} />
       ))}
     </View>

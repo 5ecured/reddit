@@ -2,10 +2,10 @@ import React, { useState, useRef, useCallback } from 'react'
 import { View, Text, FlatList, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native'
 import { router, Stack, useLocalSearchParams } from 'expo-router'
 import PostListItem from '../../../components/PostListItem'
-import comments from '../../../../assets/data/comments.json'
 import CommentListItem from '../../../components/CommentListItem'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { deletePostById, fetchComments, fetchPostById } from '../../../services/postService'
+import { deletePostById, fetchPostById } from '../../../services/postService'
+import { fetchComments, insertComment } from '../../../services/commentsService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSupabase } from '../../../lib/supabase'
 import { AntDesign, MaterialIcons, Entypo } from '@expo/vector-icons'
@@ -18,6 +18,7 @@ const DetailedPost = () => {
     const [isInputFocused, setIsInputFocused] = useState<boolean>(false)
     const inputRef = useRef<TextInput | null>(null)
     const insets = useSafeAreaInsets()
+    const [replyToId, setReplyToId] = useState<null | string>(null)
 
     const supabase = useSupabase()
     const queryClient = useQueryClient()
@@ -43,6 +44,16 @@ const DetailedPost = () => {
         }
     })
 
+    const { mutate: createComment } = useMutation({
+        mutationFn: () => insertComment({ comment, post_id: id, parent_id: replyToId }, supabase),
+        onSuccess: (data) => {
+            setComment('')
+            setReplyToId(null)
+            queryClient.invalidateQueries({ queryKey: ['comments', { postId: id }] })
+            queryClient.invalidateQueries({ queryKey: ['comments', { parentId: replyToId }] })
+        }
+    })
+
     const insetsStyle = {
         paddingBottom: insets.bottom
     }
@@ -52,6 +63,7 @@ const DetailedPost = () => {
     // }
 
     const handleReplyButtonPressed = useCallback((commentId: string) => {
+        setReplyToId(commentId)
         inputRef.current?.focus()
     }, [])
 
@@ -106,7 +118,7 @@ const DetailedPost = () => {
                     ref={inputRef}
                 />
                 {isInputFocused && (
-                    <Pressable style={{ backgroundColor: '#0d469b', borderRadius: 15, marginLeft: 'auto', marginTop: 15 }}>
+                    <Pressable onPress={() => createComment()} style={{ backgroundColor: '#0d469b', borderRadius: 15, marginLeft: 'auto', marginTop: 15 }}>
                         <Text style={{ color: 'white', paddingVertical: 5, paddingHorizontal: 10, fontWeight: 'bold', fontSize: 13 }}>Reply</Text>
                     </Pressable>
                 )}
