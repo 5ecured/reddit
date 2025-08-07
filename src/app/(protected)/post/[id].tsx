@@ -5,7 +5,7 @@ import PostListItem from '../../../components/PostListItem'
 import comments from '../../../../assets/data/comments.json'
 import CommentListItem from '../../../components/CommentListItem'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { deletePostById, fetchPostsById } from '../../../services/postService'
+import { deletePostById, fetchComments, fetchPostById } from '../../../services/postService'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSupabase } from '../../../lib/supabase'
 import { AntDesign, MaterialIcons, Entypo } from '@expo/vector-icons'
@@ -24,7 +24,12 @@ const DetailedPost = () => {
 
     const { data: post, isLoading, error } = useQuery({
         queryKey: ['posts', id],
-        queryFn: () => fetchPostsById(id, supabase)
+        queryFn: () => fetchPostById(id, supabase)
+    })
+
+    const { data: comments } = useQuery({
+        queryKey: ['comments', { postId: id }],
+        queryFn: () => fetchComments(id, supabase)
     })
 
     const { mutate: remove } = useMutation({
@@ -37,8 +42,6 @@ const DetailedPost = () => {
             Alert.alert('this error is from [id].tsx', error.message)
         }
     })
-
-    const postComments = comments.filter(comment => comment.post_id === 'post-1')
 
     const insetsStyle = {
         paddingBottom: insets.bottom
@@ -87,7 +90,7 @@ const DetailedPost = () => {
                 }}
             />
             <FlatList
-                data={postComments}
+                data={comments}
                 renderItem={({ item }) => <CommentListItem comment={item} depth={0} handleReplyButtonPressed={handleReplyButtonPressed} />}
                 ListHeaderComponent={<PostListItem post={post} isDetailedPost />}
             />

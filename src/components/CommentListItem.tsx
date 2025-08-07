@@ -3,6 +3,9 @@ import { Entypo, Octicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Comment } from "../types";
 import { useState, memo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchComments } from "../services/postService";
+import { useSupabase } from "../lib/supabase";
 
 type CommentListItemProps = {
   comment: Comment;
@@ -12,6 +15,13 @@ type CommentListItemProps = {
 
 const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentListItemProps) => {
   const [isShowReplies, setIsShowReplies] = useState<boolean>(false)
+
+  const supabase = useSupabase()
+
+  const { data: comments } = useQuery({
+    queryKey: ['comments', { parentId: comment.id }],
+    queryFn: () => fetchComments(id, supabase)
+  })
 
   return (
     <View
@@ -26,7 +36,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
       }}
     >
       {/* User Info */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+      {/* <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
         <Image
           source={{
             uri: comment.user.image || "https://notjustdev-dummy.s3.us-east-2.amazonaws.com/avatars/3.jpg",
@@ -38,7 +48,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
         <Text style={{ color: "#737373", fontSize: 13 }}>
           {formatDistanceToNowStrict(new Date(comment.created_at))}
         </Text>
-      </View>
+      </View> */}
 
       {/* Comment Content */}
       <Text>{comment.comment}</Text>
@@ -73,7 +83,7 @@ const CommentListItem = ({ comment, depth, handleReplyButtonPressed }: CommentLi
       {/* the double negation below is because if comment.replies.length is false, it becomes 0. and react native will complain
       that it must be wrapped in <Text>. Therefore we use ! to turn it into a boolean, and a second ! to turn it back to the
       original value, except now it is a boolean, so the warning from react native will disappear */}
-      {(!!comment.replies.length && !isShowReplies && depth < 5) && (
+      {(!!comment.replies?.length && !isShowReplies && depth < 5) && (
         <Pressable
           style={{ backgroundColor: '#EDEDED', borderRadius: 2, paddingVertical: 3, alignItems: 'center' }}
           onPress={() => setIsShowReplies(true)}

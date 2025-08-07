@@ -13,12 +13,39 @@ export const fetchPosts = async (supabase: SupabaseClient<Database>) => {
     }
 }
 
-export const fetchPostsById = async (id: string, supabase: SupabaseClient<Database>) => {
+export const fetchPostById = async (id: string, supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase
         .from('posts')
         .select('*, group:groups(*), upvotes(value.sum())')
         .eq('id', id)
         .single()
+
+    if (error) {
+        throw error
+    } else {
+        return data
+    }
+}
+
+export const fetchComments = async (postId: string, supabase: SupabaseClient<Database>) => {
+    const { data, error } = await supabase
+        .from('comments')
+        .select('*, replies:comments(*)')
+        .eq('post_id', postId)
+        .is('parent_id', null)
+
+    if (error) {
+        throw error
+    } else {
+        return data
+    }
+}
+
+export const fetchCommentReplies = async (parentId: string, supabase: SupabaseClient<Database>) => {
+    const { data, error } = await supabase
+        .from('comments')
+        .select('*, replies:comments(*)')
+        .eq('parent_id', parentId)
 
     if (error) {
         throw error
