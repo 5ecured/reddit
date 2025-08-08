@@ -4,7 +4,7 @@ import { Database } from "../types/database.types"
 export const fetchPosts = async (supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase
         .from('posts')
-        .select('*, group:groups(*), upvotes(value.sum())')
+        .select('*, group:groups(*), upvotes(value.sum()), nr_of_comments: comments(count)')
         .order('created_at', { ascending: false })
     if (error) {
         throw error
@@ -16,7 +16,7 @@ export const fetchPosts = async (supabase: SupabaseClient<Database>) => {
 export const fetchPostById = async (id: string, supabase: SupabaseClient<Database>) => {
     const { data, error } = await supabase
         .from('posts')
-        .select('*, group:groups(*), upvotes(value.sum())')
+        .select('*, group:groups(*), upvotes(value.sum()), nr_of_comments: comments(count)')
         .eq('id', id)
         .single()
 

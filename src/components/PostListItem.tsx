@@ -86,7 +86,7 @@ export default function PostListItem({ post, isDetailedPost }: PostListItemProps
                         </View>
                         <View style={[{ flexDirection: 'row' }, styles.iconBox]}>
                             <MaterialCommunityIcons name="comment-outline" size={19} color="black" />
-                            <Text style={{ fontWeight: '500', marginLeft: 5, alignSelf: 'center' }}>{post.nr_of_comments}</Text>
+                            <Text style={{ fontWeight: '500', marginLeft: 5, alignSelf: 'center' }}>{post.nr_of_comments?.[0].count}</Text>
                         </View>
                     </View>
                     <View style={{ marginLeft: 'auto', flexDirection: 'row', gap: 10 }}>
