@@ -7,6 +7,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from '../lib/supabase';
 import { createUpvote, selectMyVote } from '../services/upvotesService';
 import { useSession } from '@clerk/clerk-expo';
+import { useEffect, useState } from 'react';
+import { downloadImage } from '../utils/supabaseImages';
 
 
 type Post = Tables<'posts'> & {
@@ -29,6 +31,8 @@ export default function PostListItem({ post, isDetailedPost }: PostListItemProps
     const queryClient = useQueryClient()
     const { session } = useSession()
 
+    const [image, setImage] = useState<string>()
+
     const { mutate: upvote } = useMutation({
         mutationFn: (value: 1 | -1) => createUpvote(post.id, value, supabase),
         onSuccess: (data) => {
@@ -40,6 +44,12 @@ export default function PostListItem({ post, isDetailedPost }: PostListItemProps
         queryKey: ['posts', post.id, 'my-upvote'],
         queryFn: () => selectMyVote(post.id, session?.user.id, supabase)
     })
+
+    useEffect(() => {
+        if (post.image) {
+            downloadImage(post.image, supabase).then(setImage)
+        }
+    }, [post.image])
 
     const isUpvoted = myVote?.value === 1
     const isDownvoted = myVote?.value === -1
@@ -66,7 +76,7 @@ export default function PostListItem({ post, isDetailedPost }: PostListItemProps
                 {/* CONTENT */}
                 <Text style={{ fontWeight: 'bold', fontSize: 17, letterSpacing: 0.5 }}>{post.title}</Text>
                 {shouldShowImage && post.image && (
-                    <Image source={{ uri: post.image }} style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 15 }} />
+                    <Image source={{ uri: image }} style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 15 }} />
                 )}
 
                 {shouldShowDescription && post.description && (

@@ -7,26 +7,10 @@ import { selectedGroupAtom } from '../../../atoms';
 import { useAtom } from 'jotai';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSupabase } from '../../../lib/supabase';
-import { Database, TablesInsert } from '../../../types/database.types';
-import { SupabaseClient } from '@supabase/supabase-js';
 import * as ImagePicker from 'expo-image-picker'
+import { uploadImage } from '../../../utils/supabaseImages';
+import { insertPost } from '../../../services/postService';
 
-type InsertPost = TablesInsert<'posts'>
-
-const insertPost = async (post: InsertPost, supabase: SupabaseClient<Database>) => {
-    //use supabase to insert a new post
-    const { data, error } = await supabase
-        .from('posts')
-        .insert(post)
-        .select()
-        .single()
-
-    if (error) {
-        throw error
-    } else {
-        return data
-    }
-}
 
 export default function CreateScreen() {
     const [title, setTitle] = useState<string>('')
@@ -38,7 +22,7 @@ export default function CreateScreen() {
     const supabase = useSupabase()
 
     const { mutate, isPending } = useMutation({
-        mutationFn: async () => {
+        mutationFn: (image: string | undefined) => {
             if (!group) {
                 throw new Error('Please select a group')
             }
@@ -51,6 +35,7 @@ export default function CreateScreen() {
                 title,
                 description: bodyText,
                 group_id: group.id,
+                image
             }, supabase)
         },
         onSuccess: (data) => {
@@ -64,6 +49,12 @@ export default function CreateScreen() {
             Alert.alert('Failed to insert post', error.message)
         }
     })
+
+    const onPostClick = async () => {
+        let imagePath = image ? await uploadImage(image, supabase) : undefined
+
+        mutate(imagePath)
+    }
 
     const goBack = () => {
         setTitle('')
@@ -91,7 +82,7 @@ export default function CreateScreen() {
             {/* HEADER */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <AntDesign name='close' size={30} color='black' onPress={() => goBack()} />
-                <Pressable style={{ marginLeft: 'auto' }} onPress={() => mutate()} disabled={isPending}>
+                <Pressable style={{ marginLeft: 'auto' }} onPress={() => onPostClick()} disabled={isPending}>
                     <Text style={styles.postText}>{isPending ? 'Posting...' : 'Post'}</Text>
                 </Pressable>
             </View>
